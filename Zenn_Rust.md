@@ -529,6 +529,18 @@ use std::collections::*;
 }
 ```
 # 8.一般的なコレクション
+### 8.1 ベクタで値のリストを保持する
+新しいベクタの生成
+```Rust
+fn main() {
+    let v: Vec<i32> = Vec::new();
+}
+```
+```Rust
+fn main() {
+    let v = vec![1, 2, 3];
+}
+```
 ```Rust
 fn main() {
     // 空の可変ベクタを生成
@@ -628,6 +640,7 @@ fn main() {
     ];
 }
 ```
+### 8.2 文字列
 Rustにおいての文字列の定義
 一般的にStringと文字列スライスの&strを指す
 
@@ -695,7 +708,8 @@ let s = format!("{}-{}-{}", s1, s2, s3); //format!マクロを使用する
 }
 ```
 
-ハッシュマップ
+### 8.3 ハッシュマップ
+パターン1：空のハッシュマップをnewで作り、要素をinsertで追加する方法
 ```Rust
 #![allow(unused)]
 fn main() {
@@ -707,37 +721,103 @@ scores.insert(String::from("Blue"), 10);
 scores.insert(String::from("Yellow"), 50);
 }
 ```
-
-
-### 8.1
-新しいベクタの生成
+パターン2：タプルのベクタに対してcollectメソッドを使用する方法
 ```Rust
+#![allow(unused)]
 fn main() {
-    let v: Vec<i32> = Vec::new();
+use std::collections::HashMap;
+
+let teams  = vec![String::from("Blue"), String::from("Yellow")];
+let initial_scores = vec![10, 50];
+// HashMap<_, _>という型注釈が必要
+let scores: HashMap<_, _> = teams.iter().zip(initial_scores.iter()).collect();
 }
 ```
+forループでハッシュマップのキーと値のペアを走査する
 ```Rust
+#![allow(unused)]
 fn main() {
-    let v = vec![1, 2, 3];
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Yellow"), 50);
+
+for (key, value) in &scores {
+    println!("{}: {}", key, value);
+}
 }
 ```
+Pythonの場合
+```python
+scores = []
+scores.append(("Blue", 10))
+scores.append(("Yellow", 50))
 
+for key, value in scores:
+    print(key, ":", value)
+```
 
-# エラー処理
-# ジェネリック型、トレイト、ライフタイム
-# 自動テスト
-
-
-# 入出力プロジェクト
-# イテレータとクロージャ
-# cargo
-# スマートポインタ
-# 並行処理
-# オブジェクト指向
-# パターンマッチング
-# 機能
-# マルチスレッド処理
+ハッシュマップを更新する
+値を上書きする
 ```Rust
+#![allow(unused)]
+fn main() {
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Blue"), 25);
+
+println!("{:?}", scores);
+
+// output
+// {"Blue": 25}
+}
+```
+キーに値がなかった時のみ値を挿入する
+```Rust
+#![allow(unused)]
+fn main() {
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+scores.insert(String::from("Blue"), 10);
+
+scores.entry(String::from("Yellow")).or_insert(50);
+scores.entry(String::from("Blue")).or_insert(50);
+
+println!("{:?}", scores);
+
+// output
+// {"Yellow": 50, "Blue": 10}
+}
+
+```
+古い値に基づいて値を更新する
+```Rust
+
+#![allow(unused)]
+fn main() {
+use std::collections::HashMap;
+
+let text = "hello world wonderful world";
+
+let mut map = HashMap::new();
+
+for word in text.split_whitespace() {
+    let count = map.entry(word).or_insert(0);
+    *count += 1;
+}
+
+println!("{:?}", map);
+
+// output
+// {"world": 2, "hello": 1, "wonderful": 1}
+}
+
 ```
 
 
