@@ -6,6 +6,25 @@
 ```
 
 # 「The Rust Programming Language 日本語版」を読んだ備忘録
+Rustの勉強をするため、「The Rust Programming Language 日本語版」を読んで写経したり、自分用にまとめなおしてみた備忘録
+https://doc.rust-jp.rs/book-ja/
+
+# 1. 事始め
+cargoの使い方
+```Rust
+// プロジェクトを作成
+cargo new hello_cargo
+// プロジェクトをビルド
+cargo build
+// プロジェクトのビルドと実行
+cargo run
+// バイナリを生成せずにプロジェクトをビルド
+// (エラーがないか確認可能) 
+cargo check
+```
+cargoの長所はOSに関わらず同じコマンドであること
+
+# 2. 数当てゲームのプログラミング
 ## 変数の設定
 ```Rust
 let a = 5; // 不変
@@ -19,6 +38,12 @@ let mut b = 5; // 可変
 // b *= 2
 // 可変変数の再代入は可能
 ```
+普段はPythonを使うことが多いため、可変・不変を各変数に定義するのは煩雑に思えてしまう
+
+mutableに再代入しない場合はwarningメッセージが出る
+Rustはメッセージに従うだけで一定の質が担保されている感じは初心者の自分にとって良い気がする
+難しい言語であるのは間違いないが、案外初心者が最初に覚えるべき言語なのかもしれない
+
 ## 簡単なプログラム(数当てゲーム)
 ```Rust
 use rand::Rng;
@@ -77,9 +102,9 @@ println!("The value of a in the outer scope is: {}", a);
 // The value of a in the inner scope is: 20
 // The value of a in the outer scope is: 10
 ```
-## 3.2 データ型
-Rust = 静的型式言語
+シャドーイングは{}内だけ値を持つため、{}から出ると値は更新されない
 
+## 3.2 データ型
 ### 整数型
 |大きさ|符号付き|符号なし|
 |----|----|----|
@@ -107,6 +132,7 @@ fn main() {
     let x2 = x.2; //1
 }
 ```
+pythonはタプルも配列ともにx[0]でアクセスするので異なる！
 
 配列型
 ```Rust
@@ -117,7 +143,6 @@ fn main() {
     let second = a[1];　//2
 }
 ```
-コンパイル時の"panic"：プログラムがエラーで終了することを示す！
 
 ## 3.3 関数
 ```Rust
@@ -132,6 +157,7 @@ fn main() {
 ```
 
 ## 3.5 制御フロー
+loop, while, forの使い分けのためにとりあえずFizzbuzzを書いてみる
 ### loopを使用したFizzbuzz
 ```Rust
 fn main() {
@@ -189,13 +215,12 @@ fn main() {
 }
 ```
 
-
-# 所有権
+# 4.所有権
 所有権があることでガベージコレクタが不要となっている！
 
 ### スタックとヒープ
 ### スタック
-高速である。新しいデータを置いたり、 データを取得する場所を探す必要が絶対にない
+高速。新しいデータを置いたり、 データを取得する場所を探す必要が絶対にない
 スタック上のデータは全て既知の固定サイズでなければならない。
 
 ### ヒープ
@@ -280,7 +305,7 @@ let slice = &s[..]; //上記と同じ
 
 println!("{}", slice);
 ```
-# 構造体
+# 5.構造体
 ```Rust
 #![allow(unused)]
 fn main() {
@@ -341,7 +366,7 @@ fn main() {
 }
 ```
 
-# Enum(列挙型)
+# 6.Enum(列挙型)
 取り得る値を列挙することで型の定義が可能
 構造体の使い分け
 enumの列挙子は、その識別子の元に名前空間分けされていること
@@ -406,21 +431,23 @@ fn main() {
     }
 }
 ```
+ここまで書いた後で、色々探してたらとても良い記事を発見した
+https://qiita.com/hinastory/items/543ae9749c8bccb9afbc
 
-# パッケージ、クレート、モジュール
+# 7.パッケージ、クレート、モジュール
 モジュールシステム
 └── パッケージ: my_project
     ├── クレート: my_crate (バイナリ)
     │   └── ソースコード: src/main.rs
     └── クレート: my_library (ライブラリ)
-         └── ソースコード: src/lib.rs
+      　  └── ソースコード: src/lib.rs
 
 モジュール(mod)
 ```Rust
 mod front_of_house {
-    // 各関数にpubを付ける
+    // pubを付ける
     pub mod hosting {
-        // 各関数にpubを付ける
+        // pubを付ける
         pub fn add_to_waitlist() {}
     }
 }
@@ -437,7 +464,7 @@ pub fn eat_at_restaurant() {
 
 fn main() {}
 ```
-### 上記のコードは、"use"を用いることでより短いコードに書き換えることが出来る
+上記のコードは、"use"を用いることでより短いコードに書き換えることが出来る
 
 ```Rust
 mod front_of_house {
@@ -452,10 +479,9 @@ pub fn eat_at_restaurant() {
     hosting::add_to_waitlist();
     hosting::add_to_waitlist();
     hosting::add_to_waitlist();
-}
 ```
-### 下記のように関数までuseに持ち込むのは慣例的ではないため割けた方が良い
-### どこでadd_to_waitlistが定義されたのかが不明瞭になるため
+下記のように関数までuseに持ち込むのは慣例的ではないため割けた方が良い
+どこでadd_to_waitlistが定義されたのかが不明瞭になるため
 ```Rust
 use crate::front_of_house::hosting::add_to_waitlist;
 
@@ -465,8 +491,7 @@ pub fn eat_at_restaurant() {
     add_to_waitlist();
 }
 ```
-
-### 一方、構造体やenum等をuseで持ち込む場合、フルパスを書くのが慣例的
+一方、構造体やenum等をuseで持ち込む場合、フルパスを書くのが慣例的
 ```Rust
 use std::collections::HashMap;
 
