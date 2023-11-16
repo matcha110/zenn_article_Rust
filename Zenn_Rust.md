@@ -502,8 +502,6 @@ fn main() {
 
 fn main() {}
 ```
-# ここまでZenで公開済
-
 エイリアス指定
 ```Rust
 #![allow(unused)]
@@ -530,7 +528,187 @@ fn main() {
 use std::collections::*;
 }
 ```
-# 一般的なコレクション
+# 8.一般的なコレクション
+```Rust
+fn main() {
+    // 空の可変ベクタを生成
+    let mut v: Vec<i32> = Vec::new();
+}
+```
+下記の場合、追加する値から推論可能のため型注釈は不要
+```Rust
+fn main() {
+    let mut v = Vec::new();
+    // ベクタに値を追加
+    v.push(5);
+    v.push(6);
+    v.push(7);
+    v.push(8);
+}
+```
+
+```Rust
+fn main() {
+    let v = vec![1, 2, 3];
+}
+```
+ベクタもスコープを抜けると解放される
+```Rust
+fn main() {
+    let v = vec![1, 2, 3, 4, 5];
+    // 下記2行は共に同じ意味
+    let does_not_exist = &v[100];　//->パニックを返す
+    let does_not_exist = v.get(100); //->Noneを返す
+}
+```
+
+```Rust
+fn main() {
+    let v = vec![1, 2, 3, 4, 5];
+    // 0-indexに注意
+    let third: &i32 = &v[2];
+    println!("The third element is {}", third);
+
+    match v.get(2) {
+        //                      "3つ目の要素は{}です"
+        Some(third) => println!("The third element is {}", third),
+        //               "3つ目の要素はありません。"
+        None => println!("There is no third element."),
+    }
+}
+```
+
+ベクタの値を順に処理する
+```Rust
+fn main() {
+    let v = vec![100, 32, 57];
+    for i in &v {
+        println!("{}", i);
+    }
+}
+```
+Pythonの場合
+```python
+v = [100, 32, 57]
+for i in v:
+    print(i)
+```
+
+ベクタの全要素に変更を加わる場合
+```Rust
+fn main() {
+    let mut v = vec![100, 32, 57];
+    for i in &mut v {
+        *i += 50;
+        println!("{}", i);
+    }
+}
+```
+Pythonの場合
+```python
+v = [100, 32, 57]
+for i in v:
+    i += 50
+    print(i)
+```
+
+Enumを使って、複数の方を保持
+```Rust
+fn main() {
+    enum SpreadsheetCell {
+        Int(i32),
+        Float(f64),
+        Text(String),
+    }
+
+    let row = vec![
+        SpreadsheetCell::Int(3),
+        SpreadsheetCell::Text(String::from("blue")),
+        SpreadsheetCell::Float(10.12),
+    ];
+}
+```
+Rustにおいての文字列の定義
+一般的にStringと文字列スライスの&strを指す
+
+新規文字列を生成する
+```Rust
+#![allow(unused)]
+// 未使用の変数や未使用のコードに関するコンパイラの警告を抑制するために使用
+fn main() {
+let mut s = String::new();
+}
+```
+```Rust
+#![allow(unused)]
+fn main() {
+// パターン1：to_stringメソッドを使用して文字列リテラルからStringを生成
+let data = "initial contents";
+let s = data.to_string();
+// パターン2：to_stringメソッドを使用して文字列リテラルから直接Stringを生成
+let s = "initial contents".to_string();
+// パターン3：String::from関数を使って文字列リテラルからStringを生成
+let s = String::from("initial contents");
+}
+```
+文字列を更新
+pushではなく、push_strを使用する必要がある
+```Rust
+#![allow(unused)]
+fn main() {
+let mut s = String::from("foo");
+s.push_str("bar");
+}
+```
+2つの文字列を連結する場合
+```Rust
+#![allow(unused)]
+fn main() {
+let s1 = String::from("Hello, ");
+let s2 = String::from("world!");
+let s3 = s1 + &s2; // s1はムーブされ、もう使用できないことに注意
+println!("{}", s3)
+}
+```
+
+
+```Rust
+#![allow(unused)]
+fn main() {
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = s1 + "-" + &s2 + "-" + &s3;
+}
+// pythonに近い文字列の連結方法
+```
+Rustで以下の形が一般的
+```Rust
+#![allow(unused)]
+fn main() {
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = format!("{}-{}-{}", s1, s2, s3); //format!マクロを使用する
+}
+```
+
+ハッシュマップ
+```Rust
+#![allow(unused)]
+fn main() {
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Yellow"), 50);
+}
+```
+
+
 ### 8.1
 新しいベクタの生成
 ```Rust
