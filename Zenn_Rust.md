@@ -502,8 +502,6 @@ fn main() {
 
 fn main() {}
 ```
-# ここまでZenで公開済
-
 エイリアス指定
 ```Rust
 #![allow(unused)]
@@ -530,7 +528,7 @@ fn main() {
 use std::collections::*;
 }
 ```
-# 一般的なコレクション
+# 8.一般的なコレクション
 ```Rust
 fn main() {
     // 空の可変ベクタを生成
