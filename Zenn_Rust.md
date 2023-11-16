@@ -664,9 +664,51 @@ s.push_str("bar");
 ```
 2つの文字列を連結する場合
 ```Rust
-
+#![allow(unused)]
+fn main() {
+let s1 = String::from("Hello, ");
+let s2 = String::from("world!");
+let s3 = s1 + &s2; // s1はムーブされ、もう使用できないことに注意
+println!("{}", s3)
+}
 ```
 
+
+```Rust
+#![allow(unused)]
+fn main() {
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = s1 + "-" + &s2 + "-" + &s3;
+}
+// pythonに近い文字列の連結方法
+```
+Rustで以下の形が一般的
+```Rust
+#![allow(unused)]
+fn main() {
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+
+let s = format!("{}-{}-{}", s1, s2, s3); //format!マクロを使用する
+}
+```
+
+ハッシュマップ
+```Rust
+#![allow(unused)]
+fn main() {
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+
+scores.insert(String::from("Blue"), 10);
+scores.insert(String::from("Yellow"), 50);
+}
+```
 
 
 # エラー処理
