@@ -711,6 +711,20 @@ scores.insert(String::from("Yellow"), 50);
 ```
 
 
+### 8.1
+新しいベクタの生成
+```Rust
+fn main() {
+    let v: Vec<i32> = Vec::new();
+}
+```
+```Rust
+fn main() {
+    let v = vec![1, 2, 3];
+}
+```
+
+
 # エラー処理
 # ジェネリック型、トレイト、ライフタイム
 # 自動テスト
