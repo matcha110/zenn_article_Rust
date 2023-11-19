@@ -615,7 +615,6 @@ impl Config {
     }
 }
 ```
-
 panic!を呼び出す代わりにnewからResultを返すエラー処理に書き換える
 ```Rust
 impl Config {
@@ -631,24 +630,392 @@ impl Config {
     }
 }
 ```
-
-
-# 13.イテレータとクロージャ
-
-# 14.cargo
-
-# 15.スマートポインタ
-
-# 16.並行処理
-
-# 17.オブジェクト指向
-
-# 18.パターンマッチング
-
-# 19.高度な機能
-
-# 20.マルチスレッド処理
-
+さらに、トレイトを使用して関数の戻り値をResult<(), Box<dyn Error>>に変更
 ```Rust
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+use std::process;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    // クロージャを使用　詳細は後の章で触れる
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        // 引数解析時に問題
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.filename);
+
+    // ファイルが見つかりませんでした
+    let mut f = File::open(config.filename).expect("file not found");
+
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)
+        // ファイルの読み込み中に問題がありました
+        .expect("something went wrong reading the file");
+
+    // テキストは\n{}です
+    println!("With text:\n{}", contents);
+}
+
+struct Config {
+    query: String,
+    filename: String,
+}
+
+impl Config {
+    fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+
+        Ok(Config { query, filename })
+    }
+}
+```
+機能が多くなったmain関数からrun関数として分離えきる機能を抜き出す
+```Rust
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+use std::process;
+use std::error::Error;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        // 引数解析時に問題
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.filename);
+
+    if let Err(e) = run(config) {
+        println!("Application error: {}", e);
+
+        process::exit(1);
+    }
+}
+
+struct Config {
+    query: String,
+    filename: String,
+}
+
+impl Config {
+    fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+
+        Ok(Config { query, filename })
+    }
+}
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let mut f = File::open(config.filename)?;
+
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)?;
+
+    println!("With text:\n{}", contents);
+
+    Ok(())
+}
+```
+
+
+コードをライブラリクレートに分割する
+src/lib.rs
+```Rust
+use std::fs::File;
+use std::io::prelude::*;
+use std::error::Error;
+
+pub struct Config { //pub追加
+    pub query: String, //pub追加
+    pub filename: String, //pub追加
+}
+
+impl Config {
+    pub fn new(args: &[String]) -> Result<Config, &'static str> { //pub追加
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+
+        Ok(Config { query, filename })
+    }
+}
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> { //pub追加
+    let mut f = File::open(config.filename)?;
+
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)?;
+
+    println!("With text:\n{}", contents);
+
+    Ok(())
+}
+```
+
+src/main.rs
+```Rust
+extern crate minigrep;
+
+use std::env;
+use std::process;
+
+use minigrep::Config;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        // 引数解析時に問題
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.filename);
+
+    if let Err(e) = minigrep::run(config) {
+        println!("Application error: {}", e);
+
+        process::exit(1);
+    }
+}
+
+```
+
+src/lib.rs
+```Rust
+use std::fs::File;
+use std::io::prelude::*;
+use std::error::Error;
+
+pub struct Config { //pub追加
+    pub query: String, //pub追加
+    pub filename: String, //pub追加
+}
+
+impl Config {
+    pub fn new(args: &[String]) -> Result<Config, &'static str> { //pub追加
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+
+        Ok(Config { query, filename })
+    }
+}
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> { //pub追加
+    let mut f = File::open(config.filename)?;
+
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)?;
+
+    for line in search(&config.query, &contents) {
+        println!("{}", line);
+    }
+
+    Ok(())
+}
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+// テストの追加
+#[warn(unused_imports)]
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "saf"; //検索したい単語
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(
+            vec!["safe, fast, productive."], //検索単語が含まれる一文
+            search(query, contents)
+        );
+    }
+}
+```
+追加機能の実装（大文字と小文字を区別しないようにする）
+src/lib.rs
+```Rust
+use std::fs::File;
+use std::io::prelude::*;
+use std::error::Error;
+use std::env; //追加
+
+pub struct Config {
+    pub query: String,
+    pub filename: String,
+    pub case_sensitive: bool, //追加
+}
+
+impl Config {
+    pub fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+        let case_sensitive = env::var("CASE_INSENSITIVE").is_err(); //追加
+
+        Ok(Config { query, filename, case_sensitive})
+    }
+}
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let mut f = File::open(config.filename)?;
+
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)?;
+
+    let results = if config.case_sensitive {
+        search(&config.query, &contents)
+    } else {
+        search_case_insensitive(&config.query, &contents)
+    };
+
+    for line in results {
+        println!("{}", line);
+    }
+
+    Ok(())
+}
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let query = query.to_lowercase();
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        if line.to_lowercase().contains(&query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+// テストの追加
+#[warn(unused_imports)]
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "saf"; //検索したい単語
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(
+            vec!["safe, fast, productive."], //検索単語が含まれる一文
+            search(query, contents)
+        );
+    }
+
+    #[test]
+    fn case_insensitive() {
+        let query = "rUsT";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.
+Trust me.";
+
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, contents)
+        );
+    }
+}
+
+// PowerShellを使用している場合は、以下の2コマンドで実行する必要がある
+// $env:CASE_INSENSITIVE=1
+// cargo run to poem.txt
+```
+
+
+標準出力ではなく標準エラーにエラーメッセージを書き込む
+src/main.rs
+```Rust
+extern crate minigrep;
+
+use std::env;
+use std::process;
+
+use minigrep::Config;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        //標準エラーストリームに出力するマクロ：eprintln
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+
+
+    if let Err(e) = minigrep::run(config) {
+        eprintln!("Application error: {}", e);
+        process::exit(1);
+    }
+}
+
+// output.txtを作成して出力を書き込む
+// (既にoutput.txtがある場合は、上書きする)
+// cargo run to poem.txt > output.txt
 
 ```
