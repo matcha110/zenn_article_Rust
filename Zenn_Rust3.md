@@ -366,9 +366,10 @@ cargo publish
 ```
 
 # 15.スマートポインタ
+### 1.BOX
 スマートポインタの一つに"BOX<T>"がある。
 ボックスを使うことで、スタックではなく、ヒープにデータを格納することが出来る。
-その際、スタックに残るのは、ヒープデータへのポインタである。
+その際、スタックに残るのはヒープデータへのポインタである。
 
 スタックの場合と同じようにBox<T>を使ってヒープにデータを格納する例
 ```Rust
@@ -377,6 +378,91 @@ fn main() {
     println!("b = {}", b);
 }
 ```
+
+Box<T>を参照のように使用する
+```Rust
+fn main() {
+    let x = 5;
+    let y = Box::new(x);
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+}
+
+// BOXを使用しない場合エラーが生じる
+// 異なる型だから数値と数値への参照の比較は許されていない
+fn main() {
+    let x = 5;
+    let y = &x;
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
+}
+```
+
+### 2.Deref
+Derefトレイト(標準ライブラリ)を実装して型を参照のように扱う
+deref：selfを借用し、 内部のデータへの参照を返すメソッド
+```Rust
+#![allow(unused)]
+fn main() {
+use std::ops::Deref;
+
+struct MyBox<T>(T);
+impl<T> Deref for MyBox<T> {
+    type Target = T; //関連型を定義
+
+    fn deref(&self) -> &T {
+        &self.0
+    }
+}
+}
+```
+
+参照外し型強制が可変性と相互作用する方法
+Derefトレイトを使用して不変参照に対して*をオーバーライドするように、 DerefMutトレイトを使用して可変参照の*演算子をオーバーライドすることは可能である。
+
+具体的な例を以下に３つ挙げる
+T: Deref<Target=U>の時、&Tから&U　=　不変参照 -> 不変参照
+T: DerefMut<Target=U>の時、&mut Tから&mut U　=　可変参照 -> 可変参照
+T: Deref<Target=U>の時、&mut Tから&U　=　可変参照 -> 不変参照
+一方で、不変参照　-> 可変参照は不可である。
+
+### 3.Drop
+
+```Rust
+struct CustomSmartPointer {
+    data: String,
+}
+
+impl Drop for CustomSmartPointer {
+    fn drop(&mut self) {
+        // CustomSmartPointerをデータ`{}`とともにドロップするよ
+        println!("Dropping CustomSmartPointer with data `{}`!", self.data);
+    }
+}
+
+fn main() {
+    let c = CustomSmartPointer { data: String::from("my stuff") };      // 俺のもの
+    let d = CustomSmartPointer { data: String::from("other stuff") };   // 別のもの
+    println!("CustomSmartPointers created.");                           // CustomSmartPointerが生成された
+}
+
+```
+
+### 4.Rc<T>
+
+
+
+### 5.RefCell<T>
+
+
+
+### 6.循環参照
+
+
+
+
 # 16.並行処理
 
 # 17.オブジェクト指向
