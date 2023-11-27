@@ -451,11 +451,28 @@ fn main() {
 ```
 
 ### 4.Rc<T>
+Rc形：reference counting(参照カウント)の省略形
+```Rust
+enum List {
+    // Cons(i32, Box<List>),
+    Cons(i32, Rc<List>),
+    Nil,
+}
 
+use List::{Cons, Nil};
+use std::rc::Rc;
 
+fn main() {
+    // let a = Cons(5, Box::new(Cons(10, Box::new(Nil))));
+    let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil)))));　//BOXではなくRc型を使用する
+    let b = Cons(3, Rc::clone(&a));
+    let c = Cons(4, Rc::clone(&a));
+}
+
+```
 
 ### 5.RefCell<T>
-
+RefCell<T>型は、Rc<T>と異なり保持するデータに対して単独の所有権を表す
 
 
 ### 6.循環参照
