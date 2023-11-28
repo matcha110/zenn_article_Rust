@@ -473,12 +473,44 @@ fn main() {
 
 ### 5.RefCell<T>
 RefCell<T>型は、Rc<T>と異なり保持するデータに対して単独の所有権を表す
+RefCell<T>を抱えるRc<T>があれば、 複数の所有者を持ち可変化できる値を得ることができる
 
+```Rust
+#[derive(Debug)]
+enum List {
+    Cons(Rc<RefCell<i32>>, Rc<List>),
+    Nil,
+}
+
+use List::{Cons, Nil};
+use std::rc::Rc;
+use std::cell::RefCell;
+
+fn main() {
+    let value = Rc::new(RefCell::new(5));
+
+    let a = Rc::new(Cons(Rc::clone(&value), Rc::new(Nil)));
+
+    let b = Cons(Rc::new(RefCell::new(6)), Rc::clone(&a));
+    let c = Cons(Rc::new(RefCell::new(10)), Rc::clone(&a));
+
+    *value.borrow_mut() += 10;
+
+    println!("a after = {:?}", a);
+    println!("b after = {:?}", b);
+    println!("c after = {:?}", c);
+}
+
+// output
+// a after = Cons(RefCell { value: 15 }, Nil)
+// b after = Cons(RefCell { value: 6 }, Cons(RefCell { value: 15 }, Nil))
+// c after = Cons(RefCell { value: 10 }, Cons(RefCell { value: 15 }, Nil))
+```
 
 ### 6.循環参照
-
-
-
+```Rust
+continue;
+```
 
 # 16.並行処理
 
