@@ -513,13 +513,14 @@ continue;
 ```
 
 # 16.並行処理
-### 1.スレッドを生成して、複数のコードを同時に走らせる方法
-OSでは、実行中のプログラムのコードはプロセスで走り、OSは同時に複数のプロセスを管理する。
+### スレッドを生成して、複数のコードを同時に走らせる方法
+【スレッドの簡単な説明】
+OSでは実行中のプログラムのコードはプロセスで走り、OSは同時に複数のプロセスを管理する。
 自分のプログラム内で、独立した部分を同時に実行でき、その独立した部分を走らせる機能をスレッドと呼ぶ。
-
 プログラム内の計算を複数のスレッドに分けると同時に複数の作業を行うためパフォーマンスが改善する。
 一方で複雑度が増すという害もある。
-スレッドは掃除に走らせることが出来るので、子tなるスレッドのコードが走る順番に関して保証はない。
+
+スレッドを同時に走らせることが出来るので、異なるスレッドのコードが走る順番に関して保証はない。
 そのため、以下のような問題が生じる可能性もある。
 ・スレッドがデータやリソースに矛盾した順番でアクセスする競合状態
 ・2つのスレッドがお互いにもう一方が持っているリソースを使用し終わるのを待ち、両者が継続するのを防ぐデッドロック
@@ -527,19 +528,192 @@ OSでは、実行中のプログラムのコードはプロセスで走り、OS�
 
 言語がOSのAPIを呼び出してスレッドを生成するこのモデルを時に1:1と呼び、1つのOSスレッドに対して1つの言語スレッドを意味する。
 
+【spawnで新規スレッドを生成】
+```Rust
+use std::thread;
+use std::time::Duration;
 
+fn main() {
+    thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
 
-### 2.チャンネルがスレッド間でメッセージを送るメッセージ受け渡し並行性
+    for i in 1..5 {
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+}
+// output
+hi number 1 from the main thread!
+hi number 1 from the spawned thread!
+hi number 2 from the main thread!
+hi number 2 from the spawned thread!
+hi number 3 from the main thread!
+hi number 3 from the spawned thread!
+hi number 4 from the main thread!
+hi number 4 from the spawned thread!
+hi number 5 from the spawned thread!
 
-### 3.複数のスレッドが何らかのデータにアクセスする状態共有並行性
+```
 
-### 4.標準ライブラリが提供する型だけでなく、ユーザが定義した型に対してもRustの並行性の安全保証を拡張するSyncとSendトレイト
+```Rust
+use std::thread;
+use std::time::Duration;
 
+fn main() {
+    thread::spawn(|| {
+        for i in 1..10 {
+            println!("hi number {} from the spawned thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
 
+    handle.join().unwrap(); //この行を追加することで出力が混ざらないようになる
+
+    for i in 1..5 {
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
+    }
+}
+// output
+hi number 1 from the spawned thread!
+hi number 2 from the spawned thread!
+hi number 3 from the spawned thread!
+hi number 4 from the spawned thread!
+hi number 5 from the spawned thread!
+hi number 6 from the spawned thread!
+hi number 7 from the spawned thread!
+hi number 8 from the spawned thread!
+hi number 9 from the spawned thread!
+hi number 1 from the main thread!
+hi number 2 from the main thread!
+hi number 3 from the main thread!
+hi number 4 from the main thread!
+```
 
 # 17.オブジェクト指向
+カプセル化
+構造体を用いたt実装例
+```Rust
+
+#![allow(unused)]
+fn main() {
+pub struct AveragedCollection {
+    list: Vec<i32>,
+    average: f64,
+}
+impl AveragedCollection {
+    pub fn add(&mut self, value: i32) {
+        self.list.push(value);
+        self.update_average();
+    }
+
+    pub fn remove(&mut self) -> Option<i32> {
+        let result = self.list.pop();
+        match result {
+            Some(value) => {
+                self.update_average();
+                Some(value)
+            },
+            None => None,
+        }
+    }
+
+    pub fn average(&self) -> f64 {
+        self.average
+    }
+
+    fn update_average(&mut self) {
+        let total: i32 = self.list.iter().sum();
+        self.average = total as f64 / self.list.len() as f64;
+    }
+}
+}
+
+```
+Rustでは、継承ではなくトレイトプロジェクトを使用して多相性を可能にする
+
 
 # 18.パターンマッチング
+### matchアーム
+```Rust
+match VALUE {
+    PATTERN => EXPRESSION,
+    PATTERN => EXPRESSION,
+    PATTERN => EXPRESSION,
+}
+```
+### 条件分岐if let式
+```Rust
+fn main() {
+    let favorite_color: Option<&str> = None;
+    let is_tuesday = false;
+    let age: Result<u8, _> = "34".parse();
+
+    if let Some(color) = favorite_color {
+        // あなたのお気に入りの色、{}を背景色に使用します
+        println!("Using your favorite color, {}, as the background", color);
+    } else if is_tuesday {
+        // 火曜日は緑の日！
+        println!("Tuesday is green day!");
+    } else if let Ok(age) = age {
+        if age > 30 {
+            // 紫を背景色に使用します
+            println!("Using purple as the background color");
+        } else {
+            // オレンジを背景色に使用します
+            println!("Using orange as the background color");
+        }
+    } else {
+        // 青を背景色に使用します
+        println!("Using blue as the background color");
+    }
+}
+
+```
+### while let条件分岐ループ
+```Rust
+
+#![allow(unused)]
+fn main() {
+let mut stack = Vec::new();
+
+stack.push(1);
+stack.push(2);
+stack.push(3);
+
+while let Some(top) = stack.pop() {
+    println!("{}", top);
+}
+}
+```
+### forループ
+```Rust
+
+#![allow(unused)]
+fn main() {
+let v = vec!['a', 'b', 'c'];
+
+for (index, value) in v.iter().enumerate() {
+    println!("{} is at index {}", value, index);
+}
+}
+```
+### 関数の引数
+```Rust
+
+#![allow(unused)]
+fn main() {
+fn foo(x: i32) {
+    // コードがここに来る
+    // code goes here
+}
+}
+
+```
 
 # 19.高度な機能
 
