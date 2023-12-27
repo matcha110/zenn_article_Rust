@@ -177,6 +177,7 @@ fn using_other_iterator_trait_methods() {
 ```
 
 section12のプログラムをイテレータを用いたものに修正する
+
 src/main.rs
 ```Rust
 extern crate minigrep;
@@ -596,7 +597,7 @@ hi number 4 from the main thread!
 
 # 17.オブジェクト指向
 カプセル化
-構造体を用いたt実装例
+構造体を用いた実装例
 ```Rust
 
 #![allow(unused)]
