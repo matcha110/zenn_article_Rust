@@ -7,6 +7,7 @@ Zenn_Rust.md：§1～§8
 
 Zenn_Rust2.md：§9～§12
 
-Zenn_Rust3.md：§12～§16(途中)
+Zenn_Rust3.md：§12～§18
+(途中)
 
 ～§20まで記載予定
