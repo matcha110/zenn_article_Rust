@@ -710,14 +710,59 @@ fn main() {
 fn foo(x: i32) {
     // コードがここに来る
     // code goes here
-}
+    }
 }
 
 ```
 
 # 19.高度な機能
+### Unsafe Rust
+基本的にはRustのメモリ安全保証がコンパイル時に強制されている。
+
+しかしRustにはメモリ安全保証を強制しない第2の言語(Unsafe Rust)として用いることもできる。
+
+#### unsafe Rustのメリット
+- 生ポインタを参照外しすること
+- unsafeな関数やメソッドを呼ぶこと
+- 可変で静的な変数にアクセスしたり変更すること
+- unsafeなトレイトを実装すること
+
+ただし、unsafeコードで参照を使用しても安全性チェックは行う
+
+unsafeコードの例
+```Rust
+static mut COUNTER: u32 = 0;
+
+fn add_to_count(inc: u32) {
+    unsafe {
+        COUNTER += inc;
+    }
+}
+
+fn main() {
+    add_to_count(3);
+
+    unsafe {
+        println!("COUNTER: {}", COUNTER);
+    }
+}
+```
+
+### 高度なトレイト
+
+### 高度な型
+
+### 高度な関数とクロージャ
+
+### マクロ
+
 
 # 20.マルチスレッド処理
+### シングルスレッドのWebサーバ
+### シングルスレッドサーバ→マルチスレッドサーバ
+
+
+
 
 ```Rust
 
