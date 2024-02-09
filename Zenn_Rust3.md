@@ -750,10 +750,100 @@ fn main() {
 ```
 
 ### 高度なトレイト
+#### 関連型でトレイト定義においてプレースホルダーの型を指定する
+関連型は、トレイトのメソッド定義がシグニチャでプレースホルダーの型を使用できるように、トレイトと型のプレースホルダーを結び付けることで
+型の位置に使用される具体的な型を指定することができる
+
+関連型があるトレイトの一例
+```Rust
+#![allow(unused)]
+fn main() {
+pub trait Iterator {
+    type Item;
+
+    fn next(&mut self) -> Option<Self::Item>;
+    }
+}
+```
+上記では、型Itemはプレースホルダー型でnextメソッドの定義は、型Option<Self::Item>の値を返している。
+Iteratorトレイトを実装するものは、Itemの具体的な型を指定し、nextメソッドは、その具体的な型の値を含むOptionを返していることがわかる。
+
+ジェネリクスを使用した場合、Itetratorは以下のようになる
+```Rust
+#![allow(unused)]
+fn main() {
+pub trait Iterator<T> {
+    fn next(&mut self) -> Option<T>;
+    }
+}
+```
+差異は、ジェネリクスを使用すると、各実装で型を注釈しなければならないこと
+
+トレイトにジェネリックな引数があると、 毎回ジェネリックな型引数の具体的な型を変更してある型に対して複数回実装できる。
+Counterに対してnextメソッドを使用する際に、どのIteratorの実装を使用したいか型注釈をつけなければならない
+関連型なら、同じ型に対してトレイトを複数回実装できないので、型を注釈する必要がないことがここで関連型を用いるメリットである。
+
+#### デフォルトのジェネリック型引数と演算子オーバーロード
+ジェネリックな型引数を使用する際、ジェネリックな型に対して既定の具体的な型を指定可能。
+その際、既定の型が動くのであれば、トレイトを実装する側が具体的な型を指定する必要はない
+このテクニックが有用になる場面の良い例が、演算子オーバーロードである。
+
+Rustでは、独自の演算子を作ること、任意の演算子をオーバーロードすることはできない
+一方、演算子に紐づいたトレイトを実装することでstd::opsに列挙された処理と対応するトレイトをオーバーロード可能となる
+```Rust
+use std::ops::Add;
+
+#[derive(Debug, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    assert_eq!(Point { x: 1, y: 0 } + Point { x: 2, y: 3 },
+               Point { x: 3, y: 3 });
+}
+```
+
+例えば、異なる単位で値を保持する構造体、MillimetersとMetersがあり、Addの実装に変換を正しくしたいばあは以下のようになる。
+```Rust
+#![allow(unused)]
+fn main() {
+use std::ops::Add;
+
+struct Millimeters(u32);
+struct Meters(u32);
+
+impl Add<Meters> for Millimeters {
+    type Output = Millimeters;
+
+    fn add(self, other: Meters) -> Millimeters {
+        Millimeters(self.0 + (other.0 * 1000))
+        }
+    }
+}
+```
+
+#### 明確化のためのフルパス記法: 同じ名前のメソッドを呼ぶ
+#### スーパートレイトを使用して別のトレイト内で、あるトレイトの機能を必要とする
+#### ニュータイプパターンを使用して外部の型に外部のトレイトを実装する
 
 ### 高度な型
 
+
 ### 高度な関数とクロージャ
+基本的なクロージャは§13参照
 
 ### マクロ
 
