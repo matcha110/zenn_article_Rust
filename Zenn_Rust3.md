@@ -717,7 +717,7 @@ fn foo(x: i32) {
 ```
 
 # 19.高度な機能
-### Unsafe Rust
+### 19.1 Unsafe Rust
 基本的にはRustのメモリ安全保証がコンパイル時に強制されている。
 
 しかしRustにはメモリ安全保証を強制しない第2の言語(Unsafe Rust)として用いることもできる。
@@ -749,7 +749,7 @@ fn main() {
 }
 ```
 
-### 高度なトレイト
+### 19.2 高度なトレイト
 #### 関連型でトレイト定義においてプレースホルダーの型を指定する
 関連型は、トレイトのメソッド定義がシグニチャでプレースホルダーの型を使用できるように、トレイトと型のプレースホルダーを結び付けることで
 型の位置に使用される具体的な型を指定することができる
@@ -836,21 +836,139 @@ impl Add<Meters> for Millimeters {
 ```
 
 #### 明確化のためのフルパス記法: 同じ名前のメソッドを呼ぶ
+Rustにおいて、別のトレイトのメソッドと同じ名前のメソッドがトレイトにあったり、両方のトレイトを1つの型に実装することは問題ない。
+トレイトのメソッドと同じ名前のメソッドを直接型に実装することも可能である。
+
+例えば、以下のようにメソッド名の前にトレイト名を指定すると、コンパイラにどのflyの実装を呼び出したいか明確化できる
+```Rust
+trait Pilot {
+    fn fly(&self);
+}
+
+trait Wizard {
+    fn fly(&self);
+}
+
+struct Human;
+
+impl Pilot for Human {
+    fn fly(&self) {
+        println!("This is your captain speaking.");
+    }
+}
+
+impl Wizard for Human {
+    fn fly(&self) {
+        println!("Up!");
+    }
+}
+
+impl Human {
+    fn fly(&self) {
+        println!("*waving arms furiously*");
+    }
+}
+
+fn main() {
+    let person = Human;
+    Pilot::fly(&person);
+    Wizard::fly(&person);
+    person.fly();
+}
+
+/* output
+This is your captain speaking.
+Up!
+*waving arms furiously*
+*/
+```
+
+一方、トレイトの一部になる関連関数においては、フルパス記法が必要となるため以下のような記述となる。
+```Rust
+trait Animal {
+    fn baby_name() -> String;
+}
+
+struct Dog;
+
+impl Dog {
+    fn baby_name() -> String {
+        String::from("Spot")
+    }
+}
+
+impl Animal for Dog {
+    fn baby_name() -> String {
+        String::from("puppy")
+    }
+}
+
+fn main() {
+    // println!("A baby dog is called a {}", Dog::baby_name());　どのAnimalが必要か不明の為Errorとなる
+    println!("A baby dog is called a {}", <Dog as Animal>::baby_name());
+}
+```
+
 #### スーパートレイトを使用して別のトレイト内で、あるトレイトの機能を必要とする
+あるトレイトに別のトレイトの機能を使用させる必要がある場合に、依存する別のトレイトを実装しているトレイトのスーパートレイトと呼ぶ。
+例
+```Rust
+
+#![allow(unused)]
+fn main() {
+trait OutlinePrint {}
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl OutlinePrint for Point {}
+}
+```
+上記コードの場合、以下のerrorがでるため、PointにDisplayを実装してOutlinePrintが必要とする制限を満足させる必要がある。
+```Rust
+error[E0277]: the trait bound `Point: std::fmt::Display` is not satisfied
+  --> src/main.rs:20:6
+   |
+20 | impl OutlinePrint for Point {}
+   |      ^^^^^^^^^^^^ `Point` cannot be formatted with the default formatter;
+try using `:?` instead if you are using a format string
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `Point`
+```
+
+```Rust
+#![allow(unused)]
+fn main() {
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+use std::fmt;
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+        }
+    }
+}
+
+```
 #### ニュータイプパターンを使用して外部の型に外部のトレイトを実装する
 
-### 高度な型
+### 19.3 高度な型
 
 
-### 高度な関数とクロージャ
+### 19.4 高度な関数とクロージャ
 基本的なクロージャは§13参照
 
-### マクロ
+### 19.5 マクロ
 
 
 # 20.マルチスレッド処理
-### シングルスレッドのWebサーバ
-### シングルスレッドサーバ→マルチスレッドサーバ
+### 20.1 シングルスレッドのWebサーバ
+### 20.2 シングルスレッドサーバ→マルチスレッドサーバ
 
 
 
