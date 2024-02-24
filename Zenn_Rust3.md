@@ -2,6 +2,7 @@
 クロージャ：変数に保存できる関数に似た文法要素
 
 The bookの補助資料として、下記の動画を参考にした
+
 参考：https://www.youtube.com/watch?v=tw2WCjBTgRM&t=11265s
 
 ```Rust
